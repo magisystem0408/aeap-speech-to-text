@@ -17,47 +17,44 @@
  *  limitations under the License.
  */
 
-const { Codecs } = require("./lib/codecs");
-const { Languages } = require("./lib/languages");
+const { Codecs } = require('./lib/codecs');
+const { Languages } = require('./lib/languages');
 
-const { getProvider } = require("./lib/provider");
-const { getServer } = require("./lib/server");
-const { dispatch } = require("./lib/dispatcher");
+const { getProvider } = require('./lib/provider');
+const { getServer } = require('./lib/server');
+const { dispatch } = require('./lib/dispatcher');
 
-const argv = require("yargs/yargs")(process.argv.slice(2))
-	.command("$0 [options]", "Start a speech to text server", {
-		port: {
-			alias: "p",
-			desc: "Port to listen on",
-			default: 9099,
-			type: "number",
-			group: "Server",
-		},
-	})
-	.strict()
-	.argv;
+const argv = require('yargs/yargs')(process.argv.slice(2))
+  .command('$0 [options]', 'Start a speech to text server', {
+    port: {
+      alias: 'p',
+      desc: 'Port to listen on',
+      default: 9099,
+      type: 'number',
+      group: 'Server',
+    },
+  })
+  .strict().argv;
 
 const codecs = new Codecs(argv);
 const languages = new Languages(argv);
-const server = getServer("ws", argv);
+const webSocketServer = getServer('ws', argv);
 
-server.on("connection", (client) => {
-	dispatch({
-		codecs: codecs,
-		languages: languages,
-		transport: client,
-		provider: getProvider("google", argv),
-	});
+webSocketServer.on('connection', (client) => {
+  dispatch({
+    codecs: codecs,
+    languages: languages,
+    transport: client,
+    provider: getProvider('google', argv),
+  });
 });
 
-process.on("SIGINT", () => {
-	server.close();
-	process.exit(0);
+process.on('SIGINT', () => {
+  webSocketServer.close();
+  process.exit(0);
 });
 
-process.on("SIGTERM", () => {
-	server.close();
-	process.exit(0);
+process.on('SIGTERM', () => {
+  webSocketServer.close();
+  process.exit(0);
 });
-
-
